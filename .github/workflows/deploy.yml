@@ -1,0 +1,49 @@
+name: Deploy Games
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Games to EC2 via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Navigate to app directory (clone if first time)
+            if [ ! -d "/home/ec2-user/funutil-games" ]; then
+              cd /home/ec2-user
+              git clone git@github-games:ppproduction/funutil-games.git
+              cd funutil-games
+            else
+              cd /home/ec2-user/funutil-games
+              git reset --hard HEAD
+              git clean -fd
+              git pull origin main
+            fi
+
+            # Install dependencies for each sub-app
+            cd /home/ec2-user/funutil-games/home
+            npm install
+
+            cd /home/ec2-user/funutil-games/pakda-pakdi
+            npm install
+
+            # Restart apps with PM2
+            if pm2 describe games-home > /dev/null 2>&1; then
+              pm2 restart games-home
+            else
+              pm2 start /home/ec2-user/funutil-games/home/server.js --name games-home
+            fi
+
+            if pm2 describe games-pakda-pakdi > /dev/null 2>&1; then
+              pm2 restart games-pakda-pakdi
+            else
+              pm2 start /home/ec2-user/funutil-games/pakda-pakdi/server.js --name games-pakda-pakdi
+            fi

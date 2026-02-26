@@ -1,0 +1,13 @@
+{
+    "name": "games-home",
+    "version": "1.0.0",
+    "description": "games.funutil.com — Games Hub Landing Page",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "dotenv": "^17.3.1"
+    }
+}
