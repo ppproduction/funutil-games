@@ -19,8 +19,8 @@
     const ROUND_DURATION = 90;
     const CATCH_SCORE = 20, SURVIVAL_SCORE_PER_SEC = 2;
     const WALL = 1, PATH = 0, SAFE = 2;
-    const INPUT_RATE = 50; // send inputs every 50ms
-    const LERP_SPEED = 0.25; // interpolation factor (0-1, higher = snappier)
+    const INPUT_RATE = 30; // send inputs every 30ms
+    const LERP_SPEED = 0.40; // interpolation factor (0-1, higher = snappier)
 
     const BOT_NAMES = ['Raju', 'Priya', 'Kunal'];
     const PLAYER_COLORS = [
