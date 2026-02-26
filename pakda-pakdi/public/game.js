@@ -562,6 +562,7 @@
             myPredictedX = null;
             myPredictedY = null;
             lastFrameTime = 0;
+            initMaze();
             showScreen('game-screen');
             resizeCanvas();
             gameRunning = true;
