@@ -22,7 +22,7 @@ const SAFE_DURATION = 3000, CATCH_IMMUNITY = 1500;
 const POWERUP_SPAWN_INTERVAL = 7000, MAX_POWERUPS = 3;
 const ROUND_DURATION = 90;
 const CATCH_SCORE = 20, SURVIVAL_SCORE_PER_SEC = 2;
-const TICK_RATE = 30; // server ticks per second
+const TICK_RATE = 20; // server ticks per second
 const TICK_MS = 1000 / TICK_RATE;
 const MAX_PLAYERS = 6, MIN_PLAYERS = 2;
 
@@ -585,7 +585,11 @@ const server = http.createServer((req, res) => {
 // ═══════════════════════════════════════
 //  SOCKET.IO
 // ═══════════════════════════════════════
-const io = new SocketServer(server, { cors: { origin: '*' } });
+const io = new SocketServer(server, { 
+    cors: { origin: '*' },
+    pingTimeout: 60000,   // Wait 60s for a ping response (accommodates mobile app switching)
+    pingInterval: 25000   // Send a ping every 25s
+});
 
 io.on('connection', (socket) => {
     let currentRoom = null;

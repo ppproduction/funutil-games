@@ -19,8 +19,8 @@
     const ROUND_DURATION = 90;
     const CATCH_SCORE = 20, SURVIVAL_SCORE_PER_SEC = 2;
     const WALL = 1, PATH = 0, SAFE = 2;
-    const INPUT_RATE = 30; // send inputs every 30ms
-    const LERP_SPEED = 0.40; // interpolation factor (0-1, higher = snappier)
+    const INPUT_RATE = 50; // send inputs every 50ms
+    const LERP_SPEED = 0.25; // interpolation factor (0-1, higher = snappier)
 
     const BOT_NAMES = ['Raju', 'Priya', 'Kunal'];
     const PLAYER_COLORS = [
@@ -90,6 +90,7 @@
     let keys = {}, joystickDir = { x: 0, y: 0 };
     let offsetX = 0, offsetY = 0, scale = 1;
     let lastInputSend = 0;
+    let myPredictedX = null, myPredictedY = null;
 
     // ═══════════════════════════════════
     //  CANVAS
@@ -517,7 +518,15 @@
         socket = io();
         myId = socket.id; // will be set after connect
 
-        socket.on('connect', () => { myId = socket.id; });
+        socket.on('connect', () => {
+            myId = socket.id;
+            // If the user already had a room code, they probably got disconnected (e.g., iOS background tab)
+            // Attempt to re-join the existing room
+            if (roomCode) {
+                const playerName = document.getElementById('player-name').value.trim() || 'Player';
+                socket.emit('joinRoom', { name: playerName, code: roomCode });
+            }
+        });
 
         socket.on('roomCreated', (data) => {
             roomCode = data.code; isHost = true;
@@ -550,6 +559,9 @@
             onlineRound = data.round;
             onlineTotalRounds = data.totalRounds;
             serverPlayers = data.players;
+            myPredictedX = null;
+            myPredictedY = null;
+            lastFrameTime = 0;
             showScreen('game-screen');
             resizeCanvas();
             gameRunning = true;
@@ -651,20 +663,62 @@
     function onlineRenderLoop(ts) {
         if (!gameRunning || mode !== 'online') return;
 
+        const dt = lastFrameTime ? (ts - lastFrameTime) : FRAME_TIME;
+        lastFrameTime = ts;
+
         // Send input to server
         const now = Date.now();
+        const { dx, dy } = getInputDir();
         if (now - lastInputSend > INPUT_RATE) {
             lastInputSend = now;
-            const { dx, dy } = getInputDir();
             socket.emit('input', { dx, dy });
         }
 
         // Interpolate player positions for smooth rendering
         const renderList = serverPlayers.map(p => {
-            if (p._renderX !== undefined && p._targetX !== undefined) {
-                p._renderX += (p._targetX - p._renderX) * LERP_SPEED;
-                p._renderY += (p._targetY - p._renderY) * LERP_SPEED;
+            const isMe = p.id === socket.id;
+
+            if (isMe) {
+                // Client-side prediction for local player (60fps buttery smooth)
+                if (myPredictedX === null || myPredictedY === null) {
+                    myPredictedX = p.x;
+                    myPredictedY = p.y;
+                }
+
+                // Soft rubberbanding: if server and client diverge too much, snap to server
+                if (p._targetX !== undefined && Math.hypot(p._targetX - myPredictedX, p._targetY - myPredictedY) > TILE * 1.5) {
+                    myPredictedX = p._targetX;
+                    myPredictedY = p._targetY;
+                }
+
+                // Predict movement locally if not frozen
+                let isFrozen = false;
+                for (const o of serverPlayers) {
+                    if (o.id !== p.id && o.powerup === 'freeze' && o.role !== p.role) {
+                        isFrozen = true; break;
+                    }
+                }
+
+                if (!isFrozen) {
+                    const speed = (p.powerup === 'speed' ? PLAYER_SPEED * SPEED_BOOST_MULT : PLAYER_SPEED) * (dt / FRAME_TIME);
+                    const ghost = p.powerup === 'ghost';
+                    const nx = myPredictedX + dx * speed;
+                    if (isWalkable(nx, myPredictedY, ghost)) myPredictedX = nx;
+                    const ny = myPredictedY + dy * speed;
+                    if (isWalkable(myPredictedX, ny, ghost)) myPredictedY = ny;
+                }
+
+                p._renderX = myPredictedX;
+                p._renderY = myPredictedY;
+
+            } else {
+                // Smooth interpolation for remote players
+                if (p._renderX !== undefined && p._targetX !== undefined) {
+                    p._renderX += (p._targetX - p._renderX) * LERP_SPEED;
+                    p._renderY += (p._targetY - p._renderY) * LERP_SPEED;
+                }
             }
+
             return { ...p, x: p._renderX !== undefined ? p._renderX : p.x, y: p._renderY !== undefined ? p._renderY : p.y };
         });
 
