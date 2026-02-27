@@ -150,6 +150,7 @@ function sitemapXml(baseUrl = BASE_URL) {
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <sitemap><loc>${baseUrl}/sitemap-pages.xml</loc><lastmod>${now}</lastmod></sitemap>
 <sitemap><loc>${PAKDA_PAKDI_URL}/sitemap.xml</loc><lastmod>${now}</lastmod></sitemap>
+<sitemap><loc>${HOUSIE_URL}/sitemap.xml</loc><lastmod>${now}</lastmod></sitemap>
 </sitemapindex>`;
 }
 

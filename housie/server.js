@@ -2,12 +2,42 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.get('/robots.txt', (req, res) => {
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers.host || `localhost:3007`;
+    res.type('text/plain');
+    res.send(`User-agent: *\nAllow: /\nSitemap: ${protocol}://${host}/sitemap.xml`);
+});
+
+app.get('/sitemap.xml', (req, res) => {
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers.host || `localhost:3007`;
+    res.type('application/xml');
+    res.send(sitemapXml(`${protocol}://${host}`));
+});
+
+app.get('/', (req, res) => {
+    const templatePath = path.join(__dirname, 'public', 'index.html');
+    try {
+        let content = fs.readFileSync(templatePath, 'utf8');
+        const gamesUrl = process.env.GAMES_URL || (req.hostname === 'localhost' ? 'http://localhost:3005' : '/');
+        // Replace the static link with the games hub and change the text
+        content = content.replace('href="/" class="home-btn"', `href="${gamesUrl}" class="home-btn"`);
+        content = content.replace('← Back to FunUtil', '← Games');
+        res.send(content);
+    } catch (err) {
+        console.error('Error serving index:', err);
+        res.status(500).send('Error loading page');
+    }
+});
+
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // Game State
 const rooms = {};
@@ -137,6 +167,10 @@ function getValidTambolaTicket() {
         }
     }
     return ticket;
+}
+
+function sitemapXml(baseUrl) {
+    return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${baseUrl}/</loc><lastmod>${new Date().toISOString()}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url></urlset>`;
 }
 
 // Socket Connection
