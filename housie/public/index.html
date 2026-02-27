@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FunUtil - Multiplayer Housie</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7863489646399489"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div id="particle-bg"></div>
+    <div class="app-container">
+
+        <header>
+            <h1>Housie / Tambola</h1>
+            <a href="/" class="home-btn">← Back to FunUtil</a>
+        </header>
+
+        <!-- LOBBY SCREEN -->
+        <main id="screen-lobby" class="screen active">
+            <div class="glass-panel">
+                <h2>Join a Game</h2>
+                <div class="input-group">
+                    <input type="text" id="player-name" placeholder="Enter your name" required>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" id="btn-create-room">Create Room</button>
+                    <div class="divider"><span>OR</span></div>
+                    <div class="input-group">
+                        <input type="text" id="room-id-input" placeholder="Room Code (e.g. A1B2C3)">
+                    </div>
+                    <button class="btn btn-secondary" id="btn-join-room">Join Room</button>
+                </div>
+                <p id="lobby-error" class="error-msg"></p>
+            </div>
+        </main>
+
+        <!-- WAITING ROOM SCREEN -->
+        <main id="screen-waiting" class="screen">
+            <div class="glass-panel">
+                <h2>Waiting Room</h2>
+                <div class="room-info">
+                    <p>Room Code:</p>
+                    <div class="room-code-container">
+                        <strong id="display-room-code" class="highlight">---</strong>
+                        <button id="btn-copy-code" class="copy-btn" title="Copy Room Code">
+                            <svg viewBox="0 0 24 24">
+                                <path
+                                    d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+                </div>
+                <div class="players-list">
+                    <h3>Players (<span id="player-count">0</span>)</h3>
+                    <ul id="players-ul"></ul>
+                </div>
+                <div class="host-controls" id="host-controls">
+                    <div class="mode-selector">
+                        <label>Draw Mode:</label>
+                        <div class="custom-dropdown" id="draw-mode-dropdown">
+                            <div class="dropdown-selected" id="dropdown-selected" data-value="manual">Manual (Click to
+                                Draw)</div>
+                            <div class="dropdown-options" id="dropdown-options">
+                                <div class="dropdown-option selected" data-value="manual">Manual (Click to Draw)</div>
+                                <div class="dropdown-option" data-value="auto">Auto (Every 5 seconds)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="btn-start-game">Draw First Number & Start</button>
+                </div>
+                <p id="waiting-msg" class="info-msg" style="display:none;">Waiting for host to start the game...</p>
+            </div>
+        </main>
+
+        <!-- GAME SCREEN -->
+        <main id="screen-game" class="screen">
+            <div class="game-layout">
+
+                <!-- LEFT SIDE: BOARD & DRAW -->
+                <div class="game-left glass-panel">
+                    <div class="draw-area">
+                        <h3>Latest Number</h3>
+                        <div class="latest-draw" id="latest-draw-number">--</div>
+                        <div class="host-actions" id="game-host-controls" style="display:none;">
+                            <button class="btn btn-action" id="btn-draw-number">Draw Next Number</button>
+                        </div>
+                    </div>
+                    <div class="board-area">
+                        <h3>Main Board</h3>
+                        <div class="housie-board" id="main-board">
+                            <!-- JS generates 90 numbers here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT SIDE: TICKET & CLAIMS -->
+                <div class="game-right">
+                    <div class="glass-panel ticket-panel">
+                        <h3>Your Ticket</h3>
+                        <div class="housie-ticket" id="player-ticket">
+                            <!-- JS generates 3x9 grid here -->
+                        </div>
+                    </div>
+
+                    <div class="glass-panel claims-panel">
+                        <h3>Claims</h3>
+                        <div class="claims-grid">
+                            <button class="btn btn-claim" data-claim="Jaldi 5">Jaldi 5</button>
+                            <button class="btn btn-claim" data-claim="Row 1">Top Row</button>
+                            <button class="btn btn-claim" data-claim="Row 2">Middle Row</button>
+                            <button class="btn btn-claim" data-claim="Row 3">Bottom Row</button>
+                            <button class="btn btn-claim claim-full-house" data-claim="Full House">Full House</button>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel log-panel">
+                        <h3>Activity Log</h3>
+                        <ul id="activity-log"></ul>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- GAME OVER SCREEN -->
+        <main id="screen-game-over" class="screen">
+            <div class="glass-panel text-center" style="max-width: 500px; margin: 0 auto;">
+                <h2>Game Over!</h2>
+                <div class="scoreboard" id="scoreboard" style="margin-top: 2rem;">
+                    <h3>Winning Claims</h3>
+                    <ul id="scoreboard-list" class="styled-list"></ul>
+                </div>
+                <div class="actions" style="margin-top: 2rem;">
+                    <button class="btn btn-primary" id="btn-back-to-lobby">Back to Lobby</button>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Modals -->
+    <div id="toast-container"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

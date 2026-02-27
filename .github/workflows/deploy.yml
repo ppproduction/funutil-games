@@ -35,6 +35,9 @@ jobs:
             cd /home/ec2-user/funutil-games/pakda-pakdi
             npm install
 
+            cd /home/ec2-user/funutil-games/housie
+            npm install
+
             # Restart apps with PM2
             if pm2 describe games-home > /dev/null 2>&1; then
               pm2 restart games-home
@@ -46,4 +49,10 @@ jobs:
               pm2 restart games-pakda-pakdi
             else
               pm2 start /home/ec2-user/funutil-games/pakda-pakdi/server.js --name games-pakda-pakdi
+            fi
+
+            if pm2 describe games-housie > /dev/null 2>&1; then
+              pm2 restart games-housie
+            else
+              pm2 start /home/ec2-user/funutil-games/housie/server.js --name games-housie
             fi

@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3005;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const FUNUTIL_URL = process.env.FUNUTIL_URL || 'http://localhost:3001';
 const PAKDA_PAKDI_URL = process.env.PAKDA_PAKDI_URL || 'http://localhost:3006';
+const HOUSIE_URL = process.env.HOUSIE_URL || 'http://localhost:3007';
 
 function escapeHtml(str = '') {
     return String(str)
@@ -27,6 +28,16 @@ const GAMES = [
         accent: '#f97316',
         live: true,
         url: PAKDA_PAKDI_URL
+    },
+    {
+        slug: 'housie',
+        title: 'Housie (Tambola)',
+        emoji: '🎟️',
+        description: 'The classic game of probabilities! Build your ticket, mark drawn numbers and win exiting claims like Jaldi 5.',
+        gradient: 'linear-gradient(135deg, #8a2be2 0%, #ff007f 100%)',
+        accent: '#8a2be2',
+        live: true,
+        url: HOUSIE_URL
     }
 ];
 
